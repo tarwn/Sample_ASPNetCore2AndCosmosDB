@@ -1,0 +1,16 @@
+﻿@model SampleCosmosCore2App.Core.Sample
+
+@{
+    ViewData["Title"] = "GetAsync";
+    Layout = "~/Views/_Shared/Layout.cshtml";
+}
+
+<h2>Sample</h2>
+
+<form asp-action="PostAsync">
+    Id:  @Model.Id <input asp-for="Id" type="hidden" /><br />
+    Content: <input asp-for="Content" /><br />
+    <input type="submit" value="Save" />
+</form>
+
+<a asp-action="IndexAsync">Back to List</a>

@@ -1,6 +1,41 @@
-﻿@{
-    ViewData["Title"] = "Home";
+﻿@model IEnumerable<SampleCosmosCore2App.Core.Sample>
+
+@{
+    ViewData["Title"] = "View";
     Layout = "~/Views/_Shared/Layout.cshtml";
 }
 
-<h2>Home</h2>
+<h2>View</h2>
+
+<p>
+    <a asp-action="CreateAsync">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Content)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Content)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "GetAsync", new { id = item.Id })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
