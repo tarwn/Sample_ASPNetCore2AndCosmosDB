@@ -95,7 +95,7 @@ namespace SampleCosmosCore2App.Controllers
         [Authorize]
         public async Task<IActionResult> Protected()
         {
-            var session = await _membership.GetSessionDetailsAsync();
+            var session = await _membership.GetSessionDetailsAsync(HttpContext.User);
             return View("Protected", new { UserId = session.User.Id, UserName = session.User.Username, SessionId = session.Id, SessionCreated = session.CreationTime });
         }
     }

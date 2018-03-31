@@ -15,6 +15,6 @@ namespace SampleCosmosCore2App.Membership
         Task LogoutAsync();
         Task<bool> ValidateLoginAsync(ClaimsPrincipal principal);
 
-        Task<SessionDetails> GetSessionDetailsAsync();
+        Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal);
     }
 }

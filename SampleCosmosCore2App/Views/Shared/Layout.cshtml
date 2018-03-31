@@ -1,0 +1,42 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Sample App</title>
+
+    <style>
+        .navbar {
+            border-bottom: 1px solid #999;
+            height: 32px;
+        }
+        .navbar-left {
+            float: left;
+            line-height: 28px;
+        }
+        .navbar-right {
+            float: right;
+            line-height: 28px;
+            list-style-type: none;
+            margin: 0px;
+        }
+        .navbar-right li {
+            display: inline-block;
+            padding: 0px;
+            margin: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-left">(Sample Logo)</div>
+        @await Component.InvokeAsync("LoginStatus")
+    </div>
+    @RenderBody()
+</body>
+</html>

@@ -24,9 +24,9 @@ namespace SampleCosmosCore2App.Membership
 
         public CustomMembershipOptions Options { get; private set; }
 
-        public async Task<SessionDetails> GetSessionDetailsAsync()
+        public async Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal)
         {
-            var sessionId = _context.HttpContext.User.FindFirstValue("sessionId");
+            var sessionId = principal.FindFirstValue("sessionId");
             if (sessionId == null)
             {
                 return null;
