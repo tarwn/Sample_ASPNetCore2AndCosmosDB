@@ -7,21 +7,27 @@ using System.Threading.Tasks;
 
 namespace SampleCosmosCore2App.Core
 {
-    public class Persistence
+    public class Persistence : IDisposable
     {
         private string _databaseId;
         private Uri _endpointUri;
         private string _primaryKey;
+
         private DocumentClient _client;
+        private bool _isDisposing;
 
         public Persistence(Uri endpointUri, string primaryKey)
         {
             _databaseId = "QuoteServiceDB";
             _endpointUri = endpointUri;
             _primaryKey = primaryKey;
+
+            Users = new UserPersistence(_endpointUri, _primaryKey, _databaseId);
         }
 
-        public async Task EnsureSetupAsync()
+        public UserPersistence Users { get; private set; }
+        
+        private async Task EnsureSetupAsync()
         {
             if (_client == null)
             {
@@ -71,6 +77,22 @@ namespace SampleCosmosCore2App.Core
             }
 
             return results;
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposing)
+            {
+                _isDisposing = true;
+                if (_client != null)
+                {
+                    _client.Dispose();
+                }
+                if (Users != null)
+                {
+                    Users.Dispose();
+                }
+            }
         }
     }
 }

@@ -1,0 +1,31 @@
+﻿@model SampleCosmosCore2App.Models.Account.RegisterModel
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/_Shared/Layout.cshtml";
+}
+
+<h2>Register</h2>
+
+<form asp-action="Register" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="UserName" class="control-label"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password" class="control-label"></label>
+        <input asp-for="Password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email" class="control-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Register" class="btn btn-default" />
+    </div>
+</form>
+

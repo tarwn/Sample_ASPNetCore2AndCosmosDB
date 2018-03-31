@@ -25,7 +25,7 @@ namespace SampleCosmosCore2App.Controllers
         }
 
         [HttpGet("Create")]
-        public async Task<IActionResult> CreateAsync()
+        public IActionResult Create()
         {
             var sample = new Sample() { };
             return View("Get", sample);
