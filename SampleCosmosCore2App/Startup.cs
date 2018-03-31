@@ -31,11 +31,14 @@ namespace SampleCosmosCore2App
         {
             services.AddMvc();
 
-            services.AddScoped<Persistence>((s) =>
+            services.AddSingleton<Persistence>((s) =>
             {
-                return new Persistence(
+                var p = new Persistence(
                     new Uri(Configuration["CosmosDB:URL"]),
-                    Configuration["CosmosDB:PrimaryKey"]);
+                            Configuration["CosmosDB:PrimaryKey"],
+                            Configuration["CosmosDB:DatabaseId"]);
+                p.EnsureSetupAsync().Wait();
+                return p;
             });
 
             services.AddCustomMembership<CosmosDBMembership>((options) => {

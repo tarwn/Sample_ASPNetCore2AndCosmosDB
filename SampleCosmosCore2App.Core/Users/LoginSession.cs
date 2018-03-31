@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace SampleCosmosCore2App.Core
+namespace SampleCosmosCore2App.Core.Users
 {
     public class LoginSession
     {

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using SampleCosmosCore2App.Core.Samples;
+using SampleCosmosCore2App.Core.Users;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,69 +18,33 @@ namespace SampleCosmosCore2App.Core
         private DocumentClient _client;
         private bool _isDisposing;
 
-        public Persistence(Uri endpointUri, string primaryKey)
+        public Persistence(Uri endpointUri, string primaryKey, string databaseId)
         {
-            _databaseId = "QuoteServiceDB";
+            _databaseId = databaseId;
             _endpointUri = endpointUri;
             _primaryKey = primaryKey;
 
-            Users = new UserPersistence(_endpointUri, _primaryKey, _databaseId);
+            _client = new DocumentClient(endpointUri, primaryKey);
+            _client.OpenAsync();
+
+            Samples = new SamplePersistence(_client, _databaseId);
+            Users = new UserPersistence(_client, _databaseId);
         }
 
         public UserPersistence Users { get; private set; }
-        
-        private async Task EnsureSetupAsync()
-        {
-            if (_client == null)
-            {
-                _client = new DocumentClient(_endpointUri, _primaryKey);
-            }
 
+        public SamplePersistence Samples { get; private set; }
+
+        public async Task EnsureSetupAsync()
+        {
             await _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseId });
-            var databaseUri = UriFactory.CreateDatabaseUri(_databaseId);
-
-            // Samples
-            await _client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, new DocumentCollection() { Id = "SamplesCollection" });
+            
+            await Task.WhenAll(new Task[] {
+                Samples.EnsureSetupAsync(),
+                Users.EnsureSetupAsync()
+            });
         }
-
-        public async Task SaveSampleAsync(Sample sample)
-        {
-            await EnsureSetupAsync();
-
-            var documentCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseId, "SamplesCollection");
-            await _client.UpsertDocumentAsync(documentCollectionUri, sample);
-        }
-
-        public async Task<Sample> GetSampleAsync(string Id)
-        {
-            await EnsureSetupAsync();
-
-            var documentUri = UriFactory.CreateDocumentUri(_databaseId, "SamplesCollection", Id);
-            var result = await _client.ReadDocumentAsync<Sample>(documentUri);
-            return result.Document;
-        }
-
-        public async Task<List<Sample>> GetSamplesAsync()
-        {
-            await EnsureSetupAsync();
-
-            var documentCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseId, "SamplesCollection");
-
-            // build the query
-            var feedOptions = new FeedOptions() { MaxItemCount = -1 };
-            var query = _client.CreateDocumentQuery<Sample>(documentCollectionUri, "SELECT * FROM Sample", feedOptions);
-            var queryAll = query.AsDocumentQuery();
-
-            // combine the results
-            var results = new List<Sample>();
-            while (queryAll.HasMoreResults)
-            {
-                results.AddRange(await queryAll.ExecuteNextAsync<Sample>());
-            }
-
-            return results;
-        }
-
+        
         public void Dispose()
         {
             if (!_isDisposing)
@@ -87,10 +53,6 @@ namespace SampleCosmosCore2App.Core
                 if (_client != null)
                 {
                     _client.Dispose();
-                }
-                if (Users != null)
-                {
-                    Users.Dispose();
                 }
             }
         }

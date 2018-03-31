@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SampleCosmosCore2App.Core;
+using SampleCosmosCore2App.Core.Samples;
 
 namespace SampleCosmosCore2App.Controllers
 {
@@ -20,7 +21,7 @@ namespace SampleCosmosCore2App.Controllers
         [HttpGet()]
         public async Task<IActionResult> IndexAsync()
         {
-            var samples = await _persistence.GetSamplesAsync();
+            var samples = await _persistence.Samples.GetSamplesAsync();
             return View("Index", samples);
         }
 
@@ -34,14 +35,14 @@ namespace SampleCosmosCore2App.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync(string id)
         {
-            var sample = await _persistence.GetSampleAsync(id);
+            var sample = await _persistence.Samples.GetSampleAsync(id);
             return View("Get", sample);
         }
 
         [HttpPost()]
         public async Task<IActionResult> PostAsync([FromForm] Sample sample)
         {
-            await _persistence.SaveSampleAsync(sample);
+            await _persistence.Samples.SaveSampleAsync(sample);
             return RedirectToAction("IndexAsync");
         }
     }

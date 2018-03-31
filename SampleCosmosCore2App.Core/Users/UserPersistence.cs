@@ -9,41 +9,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SampleCosmosCore2App.Core
+namespace SampleCosmosCore2App.Core.Users
 {
-    public class UserPersistence : IDisposable
+    public class UserPersistence
     {
-        private const string USERS_DOCUMENT_ID = "Users";
-        private const string SESSIONS_DOCUMENT_ID = "Sessions";
-        private string _databaseId;
-        private Uri _endpointUri;
-        private string _primaryKey;
-
+        private const string USERS_DOCUMENT_COLLECTION_ID = "Users";
+        private const string SESSIONS_DOCUMENT_COLLECTION_ID = "Sessions";
         private DocumentClient _client;
-        private bool _isDisposing;
+        private string _databaseId;
 
-        public UserPersistence(Uri endpointUri, string primaryKey, string databaseId)
+        public UserPersistence(DocumentClient client, string databaseId)
         {
+            _client = client;
             _databaseId = databaseId;
-            _endpointUri = endpointUri;
-            _primaryKey = primaryKey;
         }
 
-        private async Task EnsureSetupAsync()
+        public async Task EnsureSetupAsync()
         {
-            if (_client == null)
-            {
-                _client = new DocumentClient(_endpointUri, _primaryKey);
-            }
-
-            await _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseId });
             var databaseUri = UriFactory.CreateDatabaseUri(_databaseId);
 
             // Collections
-            await _client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, new DocumentCollection() { Id = SESSIONS_DOCUMENT_ID });
+            await _client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, new DocumentCollection() { Id = SESSIONS_DOCUMENT_COLLECTION_ID });
             var users = new DocumentCollection();
-            users.Id = USERS_DOCUMENT_ID;
-            //users.PartitionKey.Paths.Add("/Username");
+            users.Id = USERS_DOCUMENT_COLLECTION_ID;
             users.UniqueKeyPolicy = new UniqueKeyPolicy()
             {
                 UniqueKeys = new Collection<UniqueKey>()
@@ -69,7 +57,7 @@ namespace SampleCosmosCore2App.Core
         {
             await EnsureSetupAsync();
 
-            var result = await _client.ReadDocumentAsync<LoginUser>(UriFactory.CreateDocumentUri(_databaseId, USERS_DOCUMENT_ID, userId));
+            var result = await _client.ReadDocumentAsync<LoginUser>(UriFactory.CreateDocumentUri(_databaseId, USERS_DOCUMENT_COLLECTION_ID, userId));
             return result.Document;
         }
 
@@ -106,7 +94,7 @@ namespace SampleCosmosCore2App.Core
         {
             await EnsureSetupAsync();
 
-            var result = await _client.ReadDocumentAsync<LoginSession>(UriFactory.CreateDocumentUri(_databaseId, SESSIONS_DOCUMENT_ID, sessionId));
+            var result = await _client.ReadDocumentAsync<LoginSession>(UriFactory.CreateDocumentUri(_databaseId, SESSIONS_DOCUMENT_COLLECTION_ID, sessionId));
             return result.Document;
         }
 
@@ -114,31 +102,20 @@ namespace SampleCosmosCore2App.Core
         {
             await EnsureSetupAsync();
 
-            await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, SESSIONS_DOCUMENT_ID, session.Id), session);
+            await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, SESSIONS_DOCUMENT_COLLECTION_ID, session.Id), session);
         }
 
         #endregion
 
         private Uri GetUsersCollectionUri()
         {
-            return UriFactory.CreateDocumentCollectionUri(_databaseId, USERS_DOCUMENT_ID);
+            return UriFactory.CreateDocumentCollectionUri(_databaseId, USERS_DOCUMENT_COLLECTION_ID);
         }
 
         private Uri GetSessionsCollectionUri()
         {
-            return UriFactory.CreateDocumentCollectionUri(_databaseId, SESSIONS_DOCUMENT_ID);
+            return UriFactory.CreateDocumentCollectionUri(_databaseId, SESSIONS_DOCUMENT_COLLECTION_ID);
         }
 
-        public void Dispose()
-        {
-            if (!_isDisposing)
-            {
-                _isDisposing = true;
-                if (_client != null)
-                {
-                    _client.Dispose();
-                }
-            }
-        }
     }
 }

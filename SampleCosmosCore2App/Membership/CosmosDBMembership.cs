@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using SampleCosmosCore2App.Core.Users;
 
 namespace SampleCosmosCore2App.Membership
 {
