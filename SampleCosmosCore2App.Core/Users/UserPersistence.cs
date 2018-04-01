@@ -47,24 +47,18 @@ namespace SampleCosmosCore2App.Core.Users
 
         public async Task<LoginUser> CreateUserAsync(LoginUser user)
         {
-            await EnsureSetupAsync();
-
             var result = await _client.CreateDocumentAsync(GetUsersCollectionUri(), user, new RequestOptions() { });
             return JsonConvert.DeserializeObject<LoginUser>(result.Resource.ToString());
         }
 
         public async Task<LoginUser> GetUserAsync(string userId)
         {
-            await EnsureSetupAsync();
-
             var result = await _client.ReadDocumentAsync<LoginUser>(UriFactory.CreateDocumentUri(_databaseId, USERS_DOCUMENT_COLLECTION_ID, userId));
             return result.Document;
         }
 
         public async Task<LoginUser> GetUserByUsernameAsync(string userName)
         {
-            await EnsureSetupAsync();
-
             var query = _client.CreateDocumentQuery<LoginUser>(GetUsersCollectionUri(), new SqlQuerySpec()
             {
                 QueryText = "SELECT * FROM Users U WHERE U.Username = @username",
@@ -84,24 +78,18 @@ namespace SampleCosmosCore2App.Core.Users
 
         public async Task<LoginSession> CreateSessionAsync(LoginSession session)
         {
-            await EnsureSetupAsync();
-
             var result = await _client.CreateDocumentAsync(GetSessionsCollectionUri(), session);
             return JsonConvert.DeserializeObject<LoginSession>(result.Resource.ToString());
         }
 
         public async Task<LoginSession> GetSessionAsync(string sessionId)
         {
-            await EnsureSetupAsync();
-
             var result = await _client.ReadDocumentAsync<LoginSession>(UriFactory.CreateDocumentUri(_databaseId, SESSIONS_DOCUMENT_COLLECTION_ID, sessionId));
             return result.Document;
         }
 
         public async Task UpdateSessionAsync(LoginSession session)
         {
-            await EnsureSetupAsync();
-
             await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, SESSIONS_DOCUMENT_COLLECTION_ID, session.Id), session);
         }
 

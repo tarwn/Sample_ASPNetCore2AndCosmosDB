@@ -30,16 +30,12 @@ namespace SampleCosmosCore2App.Core.Samples
 
         public async Task SaveSampleAsync(Sample sample)
         {
-            await EnsureSetupAsync();
-
             var documentCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseId, DOCUMENT_COLLECTION_ID);
             await _client.UpsertDocumentAsync(documentCollectionUri, sample);
         }
 
         public async Task<Sample> GetSampleAsync(string Id)
         {
-            await EnsureSetupAsync();
-
             var documentUri = UriFactory.CreateDocumentUri(_databaseId, DOCUMENT_COLLECTION_ID, Id);
             var result = await _client.ReadDocumentAsync<Sample>(documentUri);
             return result.Document;
@@ -47,8 +43,6 @@ namespace SampleCosmosCore2App.Core.Samples
 
         public async Task<List<Sample>> GetSamplesAsync()
         {
-            await EnsureSetupAsync();
-
             var documentCollectionUri = UriFactory.CreateDocumentCollectionUri(_databaseId, DOCUMENT_COLLECTION_ID);
 
             // build the query

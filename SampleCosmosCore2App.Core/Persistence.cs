@@ -38,11 +38,9 @@ namespace SampleCosmosCore2App.Core
         public async Task EnsureSetupAsync()
         {
             await _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseId });
-            
-            await Task.WhenAll(new Task[] {
-                Samples.EnsureSetupAsync(),
-                Users.EnsureSetupAsync()
-            });
+
+            await Samples.EnsureSetupAsync();
+            await Users.EnsureSetupAsync();
         }
         
         public void Dispose()
