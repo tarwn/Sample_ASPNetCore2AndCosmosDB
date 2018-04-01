@@ -14,6 +14,7 @@ namespace SampleCosmosCore2App.Core.Users
     public class UserPersistence
     {
         private const string USERS_DOCUMENT_COLLECTION_ID = "Users";
+        private const string AUTHS_DOCUMENT_COLLECTION_ID = "UserAuthentications";
         private const string SESSIONS_DOCUMENT_COLLECTION_ID = "Sessions";
         private DocumentClient _client;
         private string _databaseId;
@@ -30,6 +31,7 @@ namespace SampleCosmosCore2App.Core.Users
 
             // Collections
             await _client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, new DocumentCollection() { Id = SESSIONS_DOCUMENT_COLLECTION_ID });
+            await _client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, new DocumentCollection() { Id = AUTHS_DOCUMENT_COLLECTION_ID });
             var users = new DocumentCollection();
             users.Id = USERS_DOCUMENT_COLLECTION_ID;
             users.UniqueKeyPolicy = new UniqueKeyPolicy()
@@ -71,6 +73,44 @@ namespace SampleCosmosCore2App.Core.Users
                                      .ExecuteNextAsync<LoginUser>();
             return results.FirstOrDefault();
         }
+        
+        public async Task<LoginUser> GetUserByAuthenticationAsync(AuthenticationScheme authScheme, string identity)
+        {
+            var query = _client.CreateDocumentQuery<LoginUserAuthentication>(GetAuthenticationsCollectionUri(), new SqlQuerySpec()
+            {
+                QueryText = "SELECT * FROM UserAuthentications UA WHERE UA.Scheme = @scheme AND UA.Identity = @identity",
+                Parameters = new SqlParameterCollection()
+               {
+                    new SqlParameter("@scheme", authScheme),
+                    new SqlParameter("@identity", identity)
+               }
+            });
+            var results = await query.AsDocumentQuery()
+                                     .ExecuteNextAsync<LoginUserAuthentication>();
+            if (results.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return await GetUserAsync(results.First().UserId);
+            }
+        }
+
+        public async Task DeleteUserAsync(LoginUser user)
+        {
+            await _client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, USERS_DOCUMENT_COLLECTION_ID, user.Id));
+        }
+
+        #endregion
+
+        #region Additional Authentication Methods
+
+        public async Task<LoginUserAuthentication> CreateUserAuthenticationAsync(LoginUserAuthentication userAuth)
+        {
+            var result = await _client.CreateDocumentAsync(GetAuthenticationsCollectionUri(), userAuth, new RequestOptions() { });
+            return JsonConvert.DeserializeObject<LoginUserAuthentication>(result.Resource.ToString());
+        }
 
         #endregion
 
@@ -98,6 +138,11 @@ namespace SampleCosmosCore2App.Core.Users
         private Uri GetUsersCollectionUri()
         {
             return UriFactory.CreateDocumentCollectionUri(_databaseId, USERS_DOCUMENT_COLLECTION_ID);
+        }
+
+        private Uri GetAuthenticationsCollectionUri()
+        {
+            return UriFactory.CreateDocumentCollectionUri(_databaseId, AUTHS_DOCUMENT_COLLECTION_ID);
         }
 
         private Uri GetSessionsCollectionUri()

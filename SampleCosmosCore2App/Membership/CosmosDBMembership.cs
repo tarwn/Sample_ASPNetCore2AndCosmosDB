@@ -24,64 +24,6 @@ namespace SampleCosmosCore2App.Membership
 
         public CustomMembershipOptions Options { get; private set; }
 
-        public async Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal)
-        {
-            var sessionId = principal.FindFirstValue("sessionId");
-            if (sessionId == null)
-            {
-                return null;
-            }
-
-            var session = await _persistence.Users.GetSessionAsync(sessionId);
-            var user = await _persistence.Users.GetUserAsync(session.UserId);
-
-            return new SessionDetails()
-            {
-             Id = session.Id,
-              CreationTime = session.CreationTime,
-              LogoutTime = session.LogoutTime,
-              User = new UserDetails()
-              {
-                  Id = user.Id,
-                  Username = user.Username,
-                  Email = user.Email
-              }
-            };
-        }
-
-        public async Task<LoginResult> LoginAsync(string userName, string password)
-        {
-            var user = await _persistence.Users.GetUserByUsernameAsync(userName);
-            if (user == null)
-            {
-                return LoginResult.GetFailed();
-            }
-
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            {
-                return LoginResult.GetFailed();
-            }
-
-            // add in option of for multifactor and use options to provide redirect url
-
-            await SignInAsync(user);
-
-            return LoginResult.GetSuccess();
-        }
-        
-        public async Task LogoutAsync()
-        {
-            await _context.HttpContext.SignOutAsync();
-
-            var sessionId = _context.HttpContext.User.FindFirstValue("sessionId");
-            if (sessionId != null)
-            {
-                var session = await _persistence.Users.GetSessionAsync(sessionId);
-                session.LogoutTime = DateTime.UtcNow;
-                await _persistence.Users.UpdateSessionAsync(session);
-            }
-        }
-
         public async Task<RegisterResult> RegisterAsync(string userName, string email, string password)
         {
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
@@ -109,6 +51,118 @@ namespace SampleCosmosCore2App.Membership
             return RegisterResult.GetSuccess();
         }
 
+        public async Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity)
+        {
+            var user = new LoginUser()
+            {
+                Username = username,
+                Email = email
+            };
+            var userAuth = new LoginUserAuthentication()
+            {
+                Scheme = StringToScheme(scheme),
+                Identity = identity
+            };
+
+            try
+            {
+                user = await _persistence.Users.CreateUserAsync(user);
+            }
+            catch (Exception)
+            {
+                //TODO reduce breadth of exception statement
+                return RegisterResult.GetFailed("Username is already in use");
+            }
+
+            try
+            {
+                userAuth.UserId = user.Id;
+                userAuth = await _persistence.Users.CreateUserAuthenticationAsync(userAuth);
+            }
+            catch (Exception)
+            {
+                // cleanup
+                await _persistence.Users.DeleteUserAsync(user);
+                throw;
+            }
+
+
+            // add in option of an email activation step and use options to provide redirect url
+
+            await SignInAsync(user);
+
+            return RegisterResult.GetSuccess();
+        }
+
+        private Core.Users.AuthenticationScheme StringToScheme(string scheme)
+        {
+            switch (scheme)
+            {
+                case "Twitter":
+                    return Core.Users.AuthenticationScheme.Twitter;
+                default:
+                    throw new ArgumentException("Unrecognized sign-in scheme", scheme);
+            }
+        }
+
+        public async Task<bool> IsUsernameAvailable(string username)
+        {
+            //TODO narrow this call down toa boolean check for performance
+            var user = await _persistence.Users.GetUserByUsernameAsync(username);
+            return user == null;
+        }
+
+        public async Task<LoginResult> LoginAsync(string userName, string password)
+        {
+            var user = await _persistence.Users.GetUserByUsernameAsync(userName);
+            if (user == null)
+            {
+                return LoginResult.GetFailed();
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            {
+                return LoginResult.GetFailed();
+            }
+
+            // add in option of for multifactor and use options to provide redirect url
+
+            await SignInAsync(user);
+
+            return LoginResult.GetSuccess();
+        }
+
+        public async Task<LoginResult> LoginExternalAsync(string scheme, string identity)
+        {
+            var authScheme = StringToScheme(scheme);
+            var user = await _persistence.Users.GetUserByAuthenticationAsync(authScheme, identity);
+            if (user == null)
+            {
+                return LoginResult.GetFailed();
+            }
+
+            // add in option of for multifactor and use options to provide redirect url
+
+            await SignInAsync(user);
+
+            return LoginResult.GetSuccess();
+        }
+
+        private async Task SignInAsync(LoginUser user)
+        {
+            // key the login to a server-side session id to make it easy to invalidate later
+            var session = new LoginSession()
+            {
+                UserId = user.Id,
+                CreationTime = DateTime.UtcNow
+            };
+            session = await _persistence.Users.CreateSessionAsync(session);
+
+            var identity = new ClaimsIdentity(Options.AuthenticationType);
+            identity.AddClaim(new Claim("sessionId", session.Id));
+            await _context.HttpContext.SignInAsync(new ClaimsPrincipal(identity));
+        }
+
         public async Task<bool> ValidateLoginAsync(ClaimsPrincipal principal)
         {
             var sessionId = principal.FindFirstValue("sessionId");
@@ -129,19 +183,42 @@ namespace SampleCosmosCore2App.Membership
             return true;
         }
 
-        private async Task SignInAsync(LoginUser user)
+        public async Task LogoutAsync()
         {
-            // key the login to a server-side session id to make it easy to invalidate later
-            var session = new LoginSession()
-            {
-                UserId = user.Id,
-                CreationTime = DateTime.UtcNow
-            };
-            session = await _persistence.Users.CreateSessionAsync(session);
+            await _context.HttpContext.SignOutAsync();
 
-            var identity = new ClaimsIdentity(Options.AuthenticationType);
-            identity.AddClaim(new Claim("sessionId", session.Id));
-            await _context.HttpContext.SignInAsync(new ClaimsPrincipal(identity));
+            var sessionId = _context.HttpContext.User.FindFirstValue("sessionId");
+            if (sessionId != null)
+            {
+                var session = await _persistence.Users.GetSessionAsync(sessionId);
+                session.LogoutTime = DateTime.UtcNow;
+                await _persistence.Users.UpdateSessionAsync(session);
+            }
+        }
+
+        public async Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal)
+        {
+            var sessionId = principal.FindFirstValue("sessionId");
+            if (sessionId == null)
+            {
+                return null;
+            }
+
+            var session = await _persistence.Users.GetSessionAsync(sessionId);
+            var user = await _persistence.Users.GetUserAsync(session.UserId);
+
+            return new SessionDetails()
+            {
+                Id = session.Id,
+                CreationTime = session.CreationTime,
+                LogoutTime = session.LogoutTime,
+                User = new UserDetails()
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email
+                }
+            };
         }
     }
 }

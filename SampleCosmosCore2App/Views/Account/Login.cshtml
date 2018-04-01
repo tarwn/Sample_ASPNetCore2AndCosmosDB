@@ -7,6 +7,11 @@
 
 <div class="box">
     <h2>Login</h2>
+
+    <a asp-action="LoginWithTwitter" asp-route-returnUrl="@TempData["returnUrl"]" class="btn-white">Continue with Twitter</a>
+
+    <div class="horizantal-line"><span>or</span></div>
+
     <form asp-action="Login" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="form-group">
@@ -26,3 +31,5 @@
     <br />
     <a asp-action="Register">Register as a new user</a>
 </div>
+
+

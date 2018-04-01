@@ -10,10 +10,16 @@ namespace SampleCosmosCore2App.Membership
     {
         CustomMembershipOptions Options { get; }
 
-        Task<RegisterResult> RegisterAsync(string userName, string email, string password);
-        Task<LoginResult> LoginAsync(string userName, string password);
-        Task LogoutAsync();
+        Task<RegisterResult> RegisterAsync(string username, string email, string password);
+        Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity);
+        Task<bool> IsUsernameAvailable(string username);
+
+        Task<LoginResult> LoginAsync(string username, string password);
+        Task<LoginResult> LoginExternalAsync(string scheme, string identity);
+
         Task<bool> ValidateLoginAsync(ClaimsPrincipal principal);
+
+        Task LogoutAsync();
 
         Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal);
     }

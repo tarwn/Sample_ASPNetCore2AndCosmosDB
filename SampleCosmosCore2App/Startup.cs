@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Twitter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -41,30 +42,41 @@ namespace SampleCosmosCore2App
                 return p;
             });
 
-            services.AddCustomMembership<CosmosDBMembership>((options) => {
+            services.AddCustomMembership<CosmosDBMembership>((options) =>
+            {
                 options.AuthenticationType = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultPathAfterLogin = "/";
                 //options.DefaultPathAfterLogout = "/account/login";
             });
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie((options) =>
-            {
-                options.LoginPath = new PathString("/account/login");
-                options.LogoutPath = new PathString("/account/logout");
-                options.Events = new CookieAuthenticationEvents()
+                /* External Auth Providers */
+                .AddCookie("ExternalCookie")
+                .AddTwitter("Twitter", options =>
                 {
-                    OnValidatePrincipal = async (c) =>
+                    options.SignInScheme = "ExternalCookie";
+
+                    options.ConsumerKey = Configuration["Authentication:Twitter:ConsumerKey"];
+                    options.ConsumerSecret = Configuration["Authentication:Twitter:ConsumerSecret"];
+                })
+                /* 'Session' Cookie Provider */
+                .AddCookie((options) =>
+                {
+                    options.LoginPath = new PathString("/account/login");
+                    options.LogoutPath = new PathString("/account/logout");
+                    options.Events = new CookieAuthenticationEvents()
                     {
-                        var membership = c.HttpContext.RequestServices.GetRequiredService<ICustomMembership>();
-                        var isValid = await membership.ValidateLoginAsync(c.Principal);
-                        if (!isValid)
+                        OnValidatePrincipal = async (c) =>
                         {
-                            c.RejectPrincipal();
+                            var membership = c.HttpContext.RequestServices.GetRequiredService<ICustomMembership>();
+                            var isValid = await membership.ValidateLoginAsync(c.Principal);
+                            if (!isValid)
+                            {
+                                c.RejectPrincipal();
+                            }
                         }
-                    }
-                };
-            });
+                    };
+                });
 
         }
 
