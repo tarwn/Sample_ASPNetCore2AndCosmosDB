@@ -13,6 +13,7 @@ namespace SampleCosmosCore2App.Membership
         Task<RegisterResult> RegisterAsync(string username, string email, string password);
         Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity);
         Task<bool> IsUsernameAvailable(string username);
+        Task<bool> IsAlreadyRegisteredAsync(string scheme, string identity);
 
         Task<LoginResult> LoginAsync(string username, string password);
         Task<LoginResult> LoginExternalAsync(string scheme, string identity);

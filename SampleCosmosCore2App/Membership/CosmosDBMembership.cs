@@ -107,9 +107,12 @@ namespace SampleCosmosCore2App.Membership
 
         public async Task<bool> IsUsernameAvailable(string username)
         {
-            //TODO narrow this call down toa boolean check for performance
-            var user = await _persistence.Users.GetUserByUsernameAsync(username);
-            return user == null;
+            return await _persistence.Users.IsUsernameRegisteredAsync(username);
+        }
+
+        public async Task<bool> IsAlreadyRegisteredAsync(string scheme, string identity)
+        {
+            return await _persistence.Users.IsIdentityRegisteredAsync(StringToScheme(scheme), identity);
         }
 
         public async Task<LoginResult> LoginAsync(string userName, string password)
@@ -220,5 +223,6 @@ namespace SampleCosmosCore2App.Membership
                 }
             };
         }
+
     }
 }

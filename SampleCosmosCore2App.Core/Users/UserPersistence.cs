@@ -74,14 +74,14 @@ namespace SampleCosmosCore2App.Core.Users
             return results.FirstOrDefault();
         }
         
-        public async Task<LoginUser> GetUserByAuthenticationAsync(AuthenticationScheme authScheme, string identity)
+        public async Task<LoginUser> GetUserByAuthenticationAsync(AuthenticationScheme authenticationScheme, string identity)
         {
             var query = _client.CreateDocumentQuery<LoginUserAuthentication>(GetAuthenticationsCollectionUri(), new SqlQuerySpec()
             {
                 QueryText = "SELECT * FROM UserAuthentications UA WHERE UA.Scheme = @scheme AND UA.Identity = @identity",
                 Parameters = new SqlParameterCollection()
                {
-                    new SqlParameter("@scheme", authScheme),
+                    new SqlParameter("@scheme", authenticationScheme),
                     new SqlParameter("@identity", identity)
                }
             });
@@ -97,6 +97,21 @@ namespace SampleCosmosCore2App.Core.Users
             }
         }
 
+        public async Task<bool> IsUsernameRegisteredAsync(string username)
+        {
+            var query = _client.CreateDocumentQuery<int>(GetUsersCollectionUri(), new SqlQuerySpec()
+            {
+                QueryText = "SELECT VALUE COUNT(1) FROM Users WHERE U.Username = @username",
+                Parameters = new SqlParameterCollection()
+               {
+                   new SqlParameter("@username", username)
+               }
+            });
+            var result = await query.AsDocumentQuery()
+                                    .ExecuteNextAsync<int>();
+            return result.Single() == 1;
+        }
+
         public async Task DeleteUserAsync(LoginUser user)
         {
             await _client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, USERS_DOCUMENT_COLLECTION_ID, user.Id));
@@ -110,6 +125,23 @@ namespace SampleCosmosCore2App.Core.Users
         {
             var result = await _client.CreateDocumentAsync(GetAuthenticationsCollectionUri(), userAuth, new RequestOptions() { });
             return JsonConvert.DeserializeObject<LoginUserAuthentication>(result.Resource.ToString());
+        }
+
+
+        public async Task<bool> IsIdentityRegisteredAsync(AuthenticationScheme authenticationScheme, string identity)
+        {
+            var query = _client.CreateDocumentQuery<int>(GetAuthenticationsCollectionUri(), new SqlQuerySpec()
+            {
+                QueryText = "SELECT VALUE COUNT(1) FROM UserAuthentications  UA WHERE UA.Scheme = @scheme AND UA.Identity = @identity",
+                Parameters = new SqlParameterCollection()
+               {
+                    new SqlParameter("@scheme", authenticationScheme),
+                    new SqlParameter("@identity", identity)
+               }
+            });
+            var result = await query.AsDocumentQuery()
+                                    .ExecuteNextAsync<int>();
+            return result.Single() == 1;
         }
 
         #endregion

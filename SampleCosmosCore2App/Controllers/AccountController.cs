@@ -68,6 +68,14 @@ namespace SampleCosmosCore2App.Controllers
             var cookie = await HttpContext.AuthenticateAsync("ExternalCookie");
             var twitterId = cookie.Principal.FindFirst("urn:twitter:userid");
             var twitterUsername = cookie.Principal.FindFirst("urn:twitter:screenname");
+
+            // verify the id is not already registered, short circuit to login screen
+            if (await _membership.IsAlreadyRegisteredAsync("Twitter", twitterId.Value))
+            {
+                ModelState.AddModelError("", $"Welcome back! Your twitter account @{twitterUsername.Value} is already registered. Maybe login instead?");
+                return View("Login");
+            }
+
             var suggestedUsername = await FindUniqueSuggestionAsync(twitterUsername.Value);
 
             var model = new RegisterWithTwitterModel() {
