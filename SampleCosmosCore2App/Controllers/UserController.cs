@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SampleCosmosCore2App.Core;
 using SampleCosmosCore2App.Core.Users;
@@ -11,6 +12,7 @@ using SampleCosmosCore2App.Models.User;
 namespace SampleCosmosCore2App.Controllers
 {
     [Route("user")]
+    [Authorize]
     public class UserController : Controller
     {
         private ICustomMembership _membership;
