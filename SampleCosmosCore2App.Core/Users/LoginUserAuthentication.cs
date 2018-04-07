@@ -13,5 +13,7 @@ namespace SampleCosmosCore2App.Core.Users
         public string UserId { get; set; }
         public AuthenticationScheme Scheme { get; set; }
         public string Identity { get; set; }
+        public string Name { get; set; }
+        public DateTime CreationTime { get; set; }
     }
 }

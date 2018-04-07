@@ -59,6 +59,21 @@ namespace SampleCosmosCore2App.Core.Users
             return result.Document;
         }
 
+        public async Task<LoginUser> GetUserBySessionIdAsync(string sessionId)
+        {
+            var query = _client.CreateDocumentQuery<LoginUser>(GetUsersCollectionUri(), new SqlQuerySpec()
+            {
+                QueryText = "SELECT U.* FROM Users U INNER JOIN Sessions S ON S.UserId = U.id WHERE S.id = @sessionId",
+                Parameters = new SqlParameterCollection()
+               {
+                   new SqlParameter("@sessionId", sessionId)
+               }
+            });
+            var results = await query.AsDocumentQuery()
+                                     .ExecuteNextAsync<LoginUser>();
+            return results.FirstOrDefault();
+        }
+
         public async Task<LoginUser> GetUserByUsernameAsync(string userName)
         {
             var query = _client.CreateDocumentQuery<LoginUser>(GetUsersCollectionUri(), new SqlQuerySpec()
@@ -127,6 +142,26 @@ namespace SampleCosmosCore2App.Core.Users
             return JsonConvert.DeserializeObject<LoginUserAuthentication>(result.Resource.ToString());
         }
 
+        public async Task<List<LoginUserAuthentication>> GetUserAuthenticationsAsync(string userId)
+        {
+            var query = _client.CreateDocumentQuery<int>(GetAuthenticationsCollectionUri(), new SqlQuerySpec()
+            {
+                QueryText = "SELECT * FROM UserAuthentications WHERE UA.UserId = @userId",
+                Parameters = new SqlParameterCollection()
+               {
+                   new SqlParameter("@userId", userId)
+               }
+            });
+            var queryAll = query.AsDocumentQuery();
+
+            var results = new List<LoginUserAuthentication>();
+            while (queryAll.HasMoreResults)
+            {
+                results.AddRange(await queryAll.ExecuteNextAsync<LoginUserAuthentication>());
+            }
+
+            return results;
+        }
 
         public async Task<bool> IsIdentityRegisteredAsync(AuthenticationScheme authenticationScheme, string identity)
         {

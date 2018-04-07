@@ -13,5 +13,6 @@ namespace SampleCosmosCore2App.Core.Users
         public string Email { get; set; }
         
         public string PasswordHash { get; set; }
+        public DateTime CreationTime { get; set; }
     }
 }

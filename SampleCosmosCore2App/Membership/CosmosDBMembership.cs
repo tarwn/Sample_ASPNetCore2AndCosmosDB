@@ -31,7 +31,8 @@ namespace SampleCosmosCore2App.Membership
             {
                 Username = userName,
                 Email = email,
-                PasswordHash = passwordHash
+                PasswordHash = passwordHash,
+                CreationTime = DateTime.UtcNow
             };
 
             try
@@ -51,17 +52,20 @@ namespace SampleCosmosCore2App.Membership
             return RegisterResult.GetSuccess();
         }
 
-        public async Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity)
+        public async Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity, string identityName)
         {
             var user = new LoginUser()
             {
                 Username = username,
-                Email = email
+                Email = email,
+                CreationTime = DateTime.UtcNow
             };
             var userAuth = new LoginUserAuthentication()
             {
                 Scheme = StringToScheme(scheme),
-                Identity = identity
+                Identity = identity,
+                Name = identityName,
+                CreationTime = DateTime.UtcNow
             };
 
             try
@@ -168,7 +172,7 @@ namespace SampleCosmosCore2App.Membership
 
         public async Task<bool> ValidateLoginAsync(ClaimsPrincipal principal)
         {
-            var sessionId = principal.FindFirstValue("sessionId");
+            var sessionId = GetSessionId(principal);
             if (sessionId == null)
             {
                 return false;
@@ -190,7 +194,7 @@ namespace SampleCosmosCore2App.Membership
         {
             await _context.HttpContext.SignOutAsync();
 
-            var sessionId = _context.HttpContext.User.FindFirstValue("sessionId");
+            var sessionId = GetSessionId(_context.HttpContext.User);
             if (sessionId != null)
             {
                 var session = await _persistence.Users.GetSessionAsync(sessionId);
@@ -199,9 +203,14 @@ namespace SampleCosmosCore2App.Membership
             }
         }
 
+        public string GetSessionId(ClaimsPrincipal principal)
+        {
+            return principal.FindFirstValue("sessionId");
+        }
+
         public async Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal)
         {
-            var sessionId = principal.FindFirstValue("sessionId");
+            var sessionId = GetSessionId(principal);
             if (sessionId == null)
             {
                 return null;

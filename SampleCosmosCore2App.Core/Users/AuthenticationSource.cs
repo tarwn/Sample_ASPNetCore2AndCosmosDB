@@ -6,6 +6,7 @@ namespace SampleCosmosCore2App.Core.Users
 {
     public enum AuthenticationScheme
     {
-        Twitter = 1
+        Twitter = 1,
+        APIKey = 2
     }
 }

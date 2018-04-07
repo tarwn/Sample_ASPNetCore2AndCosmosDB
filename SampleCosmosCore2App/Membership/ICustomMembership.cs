@@ -11,7 +11,7 @@ namespace SampleCosmosCore2App.Membership
         CustomMembershipOptions Options { get; }
 
         Task<RegisterResult> RegisterAsync(string username, string email, string password);
-        Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity);
+        Task<RegisterResult> RegisterExternalAsync(string username, string email, string scheme, string identity, string identityName);
         Task<bool> IsUsernameAvailable(string username);
         Task<bool> IsAlreadyRegisteredAsync(string scheme, string identity);
 
@@ -22,6 +22,7 @@ namespace SampleCosmosCore2App.Membership
 
         Task LogoutAsync();
 
+        string GetSessionId(ClaimsPrincipal principal);
         Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal);
     }
 }

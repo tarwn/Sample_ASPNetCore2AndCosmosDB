@@ -113,7 +113,7 @@ namespace SampleCosmosCore2App.Controllers
                 return View("RegisterWithTwitterContinue", model);
             }
 
-            var result = await _membership.RegisterExternalAsync(model.UserName, model.Email, "Twitter", model.TwitterId);
+            var result = await _membership.RegisterExternalAsync(model.UserName, model.Email, "Twitter", model.TwitterId, $"Twitter: {model.TwitterUsername}");
             if (result.Failed)
             {
                 ModelState.AddModelError("", result.ErrorMessage);
