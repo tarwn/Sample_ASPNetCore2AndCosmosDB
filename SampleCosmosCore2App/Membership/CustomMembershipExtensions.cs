@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,14 @@ namespace SampleCosmosCore2App.Membership
             });
 
             return services;
+        }
+
+        public static AuthenticationBuilder AddCustomMembershipAPIAuth(this AuthenticationBuilder builder, string scheme, string realm)
+        {
+            return builder.AddScheme<CustomMembershipAPIOptions, CustomMembershipAPIAuthHandler>(scheme, (options) => {
+                options.Scheme = scheme;
+                options.Realm = realm;
+            });
         }
     }
 }

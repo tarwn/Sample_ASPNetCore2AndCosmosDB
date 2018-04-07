@@ -18,6 +18,7 @@ namespace SampleCosmosCore2App.Membership
 
         Task<LoginResult> LoginAsync(string username, string password);
         Task<LoginResult> LoginExternalAsync(string scheme, string identity);
+        Task<ClaimsPrincipal> GetOneTimeLoginAsync(string scheme, string userAuthId, string identity, string authenticationScheme);
 
         Task<bool> ValidateLoginAsync(ClaimsPrincipal principal);
 

@@ -136,6 +136,8 @@ namespace SampleCosmosCore2App.Membership
                 return LoginResult.GetFailed();
             }
 
+            // add validation that user is allowed to login
+
             // add in option of for multifactor and use options to provide redirect url
 
             await SignInAsync(user);
@@ -152,11 +154,41 @@ namespace SampleCosmosCore2App.Membership
                 return LoginResult.GetFailed();
             }
 
+            // add validation that user is allowed to login
+
             // add in option of for multifactor and use options to provide redirect url
 
             await SignInAsync(user);
 
             return LoginResult.GetSuccess();
+        }
+
+        public async Task<ClaimsPrincipal> GetOneTimeLoginAsync(string scheme, string userAuthId, string identity, string authenticationScheme)
+        {
+            var authScheme = StringToScheme(scheme);
+            var userAuth = await _persistence.Users.GetUserAuthenticationAsync(userAuthId);
+
+            // are the passed auth details valid?
+            if (userAuth == null)
+            {
+                return null;
+            }
+
+            if (userAuth.Scheme != authScheme || !userAuth.Identity.Equals(identity, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            // is the user allowed to log in?
+            var user = await _persistence.Users.GetUserAsync(userAuth.UserId);
+
+            // add validation that user is allowed to login
+
+            // create a claims principal
+            var claimsIdentity = new ClaimsIdentity(authenticationScheme);
+            claimsIdentity.AddClaim(new Claim("userId", userAuth.UserId));
+            claimsIdentity.AddClaim(new Claim("userAuthId", userAuth.Id));
+            return new ClaimsPrincipal(claimsIdentity);
         }
 
         private async Task SignInAsync(LoginUser user)
@@ -170,6 +202,7 @@ namespace SampleCosmosCore2App.Membership
             session = await _persistence.Users.CreateSessionAsync(session);
 
             var identity = new ClaimsIdentity(Options.AuthenticationType);
+            identity.AddClaim(new Claim("userId", session.UserId));
             identity.AddClaim(new Claim("sessionId", session.Id));
             await _context.HttpContext.SignInAsync(new ClaimsPrincipal(identity));
         }

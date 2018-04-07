@@ -50,6 +50,8 @@ namespace SampleCosmosCore2App
             });
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                /* Custom Membership API Provider */
+                .AddCustomMembershipAPIAuth("APIToken", "SampleCosmosCore2App")
                 /* External Auth Providers */
                 .AddCookie("ExternalCookie")
                 .AddTwitter("Twitter", options =>
@@ -78,6 +80,13 @@ namespace SampleCosmosCore2App
                     };
                 });
 
+            services.AddAuthorization(options => {
+                options.AddPolicy("APIAccessOnly", policy =>
+                {
+                    policy.AddAuthenticationSchemes("APIToken");
+                    policy.RequireAuthenticatedUser();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
