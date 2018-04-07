@@ -22,8 +22,8 @@ namespace SampleCosmosCore2App.Controllers
             _persistence = persistence;
         }
 
-        [HttpGet("index")]
-        public async Task<IActionResult> IndexAsync()
+        [HttpGet("")]
+        public async Task<IActionResult> IndexAsync(string error)
         {
             var sessionId = _membership.GetSessionId(HttpContext.User);
             var user = await _persistence.Users.GetUserBySessionIdAsync(sessionId);
@@ -49,6 +49,10 @@ namespace SampleCosmosCore2App.Controllers
                 UserAuthentications = groupedAuths
             };
 
+            if (!string.IsNullOrEmpty(error))
+            {
+                ModelState.AddModelError("", error);
+            }
             return View("Index", model);
         }
 
@@ -88,6 +92,23 @@ namespace SampleCosmosCore2App.Controllers
             };
 
             return View("ShowKey", resultModel);
+        }
+
+        [HttpGet("revoke")]
+        public async Task<IActionResult> Revoke(string id)
+        {
+            var sessionId = _membership.GetSessionId(HttpContext.User);
+            var user = await _persistence.Users.GetUserBySessionIdAsync(sessionId);
+
+            var result = await _membership.RevokeAuthenticationAsync(user.Id, id);
+            if (result.Failed)
+            {
+                return RedirectToAction("IndexAsync", new { error = result.Error });
+            }
+            else
+            {
+                return RedirectToAction("IndexAsync");
+            }
         }
     }
 }

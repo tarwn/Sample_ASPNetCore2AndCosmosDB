@@ -61,17 +61,24 @@ namespace SampleCosmosCore2App.Core.Users
 
         public async Task<LoginUser> GetUserBySessionIdAsync(string sessionId)
         {
-            var query = _client.CreateDocumentQuery<LoginUser>(GetUsersCollectionUri(), new SqlQuerySpec()
+            var query = _client.CreateDocumentQuery<string>(GetSessionsCollectionUri(), new SqlQuerySpec()
             {
-                QueryText = "SELECT U.* FROM Users U INNER JOIN Sessions S ON S.UserId = U.id WHERE S.id = @sessionId",
+                QueryText = "SELECT VALUE S.UserId FROM Sessions S WHERE S.id = @sessionId",
                 Parameters = new SqlParameterCollection()
                {
                    new SqlParameter("@sessionId", sessionId)
                }
             });
             var results = await query.AsDocumentQuery()
-                                     .ExecuteNextAsync<LoginUser>();
-            return results.FirstOrDefault();
+                                     .ExecuteNextAsync<string>();
+            if (results.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return await GetUserAsync(results.Single());
+            }
         }
 
         public async Task<LoginUser> GetUserByUsernameAsync(string userName)
@@ -142,11 +149,28 @@ namespace SampleCosmosCore2App.Core.Users
             return JsonConvert.DeserializeObject<LoginUserAuthentication>(result.Resource.ToString());
         }
 
+
+        public async Task<LoginUserAuthentication> GetUserAuthenticationAsync(string id)
+        {
+            var query = _client.CreateDocumentQuery<LoginUserAuthentication>(GetAuthenticationsCollectionUri(), new SqlQuerySpec()
+            {
+                QueryText = "SELECT * FROM UserAuthentications UA WHERE UA.id = @id",
+                Parameters = new SqlParameterCollection()
+               {
+                   new SqlParameter("@id", id)
+               }
+            });
+
+            var result = await query.AsDocumentQuery()
+                                    .ExecuteNextAsync<LoginUserAuthentication>();
+            return result.SingleOrDefault();
+        }
+
         public async Task<List<LoginUserAuthentication>> GetUserAuthenticationsAsync(string userId)
         {
             var query = _client.CreateDocumentQuery<int>(GetAuthenticationsCollectionUri(), new SqlQuerySpec()
             {
-                QueryText = "SELECT * FROM UserAuthentications WHERE UA.UserId = @userId",
+                QueryText = "SELECT * FROM UserAuthentications UA WHERE UA.UserId = @userId",
                 Parameters = new SqlParameterCollection()
                {
                    new SqlParameter("@userId", userId)
@@ -177,6 +201,11 @@ namespace SampleCosmosCore2App.Core.Users
             var result = await query.AsDocumentQuery()
                                     .ExecuteNextAsync<int>();
             return result.Single() == 1;
+        }
+        
+        public async Task UpdateUserAuthenticationAsync(LoginUserAuthentication userAuth)
+        {
+            await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, AUTHS_DOCUMENT_COLLECTION_ID, userAuth.Id), userAuth, new RequestOptions() { });
         }
 
         #endregion

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SampleCosmosCore2App.Membership
+namespace SampleCosmosCore2App.Membership.Data
 {
     public class RegisterResult
     {

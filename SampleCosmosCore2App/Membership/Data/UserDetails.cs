@@ -1,4 +1,4 @@
-﻿namespace SampleCosmosCore2App.Membership
+﻿namespace SampleCosmosCore2App.Membership.Data
 {
     public class UserDetails
     {

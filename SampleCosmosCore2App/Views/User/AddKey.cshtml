@@ -1,0 +1,26 @@
+﻿@model SampleCosmosCore2App.Models.User.NewKeyModel
+
+@{
+    ViewData["Title"] = "AddKey";
+    Layout = "~/Views/Shared/Layout.cshtml";
+}
+
+<div class="box">
+    <h2>AddKey</h2>
+
+    <form asp-action="AddKey">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Create API Key" class="btn btn-default" />
+        </div>
+    </form>
+
+</div>
+<div>
+    <a asp-action="IndexAsync">Back to List</a>
+</div>

@@ -1,0 +1,22 @@
+﻿@model SampleCosmosCore2App.Models.User.UserAuthenticationModel
+
+@{
+    ViewData["Title"] = "ShowKey";
+    Layout = "~/Views/Shared/Layout.cshtml";
+}
+
+<div class="box">
+    <h2>Your New API Key</h2>
+    <p>
+        You will need the API Key Id and API Key Secret to make an API call. Save your API Key Secret now, we won't show it again!
+    </p>
+
+    <div>
+        Name: @Model.Name<br />
+        API Key Id: @Model.Id<br />
+        API Key Secret: @Model.Identity<br />
+    </div>
+</div>
+<div>
+    <a asp-action="IndexAsync">Back to List</a>
+</div>

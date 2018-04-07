@@ -6,6 +6,7 @@
 }
 
 <h2>Your Account</h2>
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
 Username: @Model.User.Username<br />
 Registered: @Model.User.CreationTime<br />
@@ -19,29 +20,32 @@ else
 {
     <text>Not Linked</text>
 }
-<br/>
+<br />
 <h3>API Keys</h3>
 <table>
     <tr>
         <th>Created</th>
         <th>Name</th>
-        <th>Key</th>
+        <th>API Key Id</th>
+        <th>API Key Secret</th>
         <th></th>
     </tr>
-    @{ 
-        var keys = Model.UserAuthentications["APIKey"] ?? new List<SampleCosmosCore2App.Models.User.UserAuthenticationModel>();
+    @if (Model.UserAuthentications.ContainsKey("APIKey"))
+    {
+        var keys = Model.UserAuthentications["APIKey"];
         foreach (var key in keys)
-        { 
-        <tr>
-            <td>@key.CreationTime</td>
-            <td>@key.Name</td>
-            <td>@key.Identity</td>
-            <td>[revoke]</td>
-        </tr>
+        {
+            <tr>
+                <td>@key.CreationTime</td>
+                <td>@key.Name</td>
+                <td>@key.Id</td>
+                <td>@key.GetMaskedIdentity()</td>
+                <td><a asp-action="Revoke" asp-route-id="@key.Id">Revoke</a></td>
+            </tr>
         }
     }
     <tr>
-        <td colspan="4">
+        <td colspan="5">
             <a asp-action="AddKey">Add a key</a>
         </td>
     </tr>

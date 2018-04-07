@@ -7,6 +7,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using SampleCosmosCore2App.Core.Users;
+using System.Security.Cryptography;
+using SampleCosmosCore2App.Membership.Data;
 
 namespace SampleCosmosCore2App.Membership
 {
@@ -104,6 +106,8 @@ namespace SampleCosmosCore2App.Membership
             {
                 case "Twitter":
                     return Core.Users.AuthenticationScheme.Twitter;
+                case "APIKey":
+                    return Core.Users.AuthenticationScheme.APIKey;
                 default:
                     throw new ArgumentException("Unrecognized sign-in scheme", scheme);
             }
@@ -232,6 +236,62 @@ namespace SampleCosmosCore2App.Membership
                 }
             };
         }
+        
+        public string GenerateAPIKey(string userId)
+        {
+            var key = new byte[32];
+            using (var generator = RandomNumberGenerator.Create())
+            {
+                generator.GetBytes(key);
+            }
+            return Convert.ToBase64String(key);
+        }
 
+        public async Task<AuthenticationDetails> AddAuthenticationAsync(string userId, string scheme, string identity, string identityName)
+        {
+            var userAuth = new LoginUserAuthentication()
+            {
+                UserId = userId,
+                Scheme = StringToScheme(scheme),
+                Identity = identity,
+                Name = identityName,
+                CreationTime = DateTime.UtcNow
+            };
+
+            userAuth = await _persistence.Users.CreateUserAuthenticationAsync(userAuth);
+
+            return new AuthenticationDetails()
+            {
+                Id = userAuth.Id,
+                Scheme = userAuth.Scheme.ToString(),
+                Identity = userAuth.Identity,
+                Name = userAuth.Name,
+                CreationTime = userAuth.CreationTime
+            };
+        }
+
+        public async Task<RevocationDetails> RevokeAuthenticationAsync(string userId, string identity)
+        {
+            var userAuth = await _persistence.Users.GetUserAuthenticationAsync(identity);
+            if (!userAuth.UserId.Equals(userId))
+            {
+                return RevocationDetails.GetFailed("Could not find specified API Key for your account");
+            }
+
+            if (userAuth.Scheme == Core.Users.AuthenticationScheme.RevokedAPIKey)
+            {
+                return RevocationDetails.GetFailed("APIKey has already been revoked");
+            }
+
+            if (userAuth.Scheme != Core.Users.AuthenticationScheme.APIKey)
+            {
+                return RevocationDetails.GetFailed("Could not find specified API Key for your account");
+            }
+
+            userAuth.Scheme = Core.Users.AuthenticationScheme.RevokedAPIKey;
+            await _persistence.Users.UpdateUserAuthenticationAsync(userAuth);
+
+            return RevocationDetails.GetSuccess();
+        }
     }
 }
