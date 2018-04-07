@@ -14,6 +14,7 @@ namespace SampleCosmosCore2App.Models.Account
 
         [Required]
         [StringLength(72)]
+        [MinLength(8)]
         public string Password { get; set; }
 
         [Required]

@@ -57,8 +57,7 @@ namespace SampleCosmosCore2App.Membership
                 return LoginResult.GetFailed();
             }
 
-            //TODO: use bcrypt or similar to check password
-            if (user.PasswordHash != password)
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             {
                 return LoginResult.GetFailed();
             }
@@ -85,12 +84,12 @@ namespace SampleCosmosCore2App.Membership
 
         public async Task<RegisterResult> RegisterAsync(string userName, string email, string password)
         {
-            //TODO: actually hash password
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
             var user = new LoginUser()
             {
                 Username = userName,
                 Email = email,
-                PasswordHash = password
+                PasswordHash = passwordHash
             };
 
             try
