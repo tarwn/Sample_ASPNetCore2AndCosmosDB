@@ -1,0 +1,15 @@
+﻿@model SampleCosmosCore2App.Models.Error.DescriptiveError
+
+@{
+    ViewData["Title"] = "DescriptiveError";
+    Layout = "~/Views/Shared/Layout.cshtml";
+}
+
+<h2>Internal Error</h2>
+<p>
+    We're sorry, an error has occurred: <br/>
+    <ul>
+        <li>@Model.Message</li>
+    </ul>
+    We've been notified and will look into it right away.
+</p>

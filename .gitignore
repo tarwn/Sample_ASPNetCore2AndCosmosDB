@@ -1,3 +1,8 @@
+# Project-specific
+
+mail/*.eml
+
+
 *.swp
 *.*~
 project.lock.json

@@ -240,11 +240,6 @@ namespace SampleCosmosCore2App.Membership
             }
         }
 
-        public string GetSessionId(ClaimsPrincipal principal)
-        {
-            return principal.FindFirstValue("sessionId");
-        }
-
         public async Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal)
         {
             var sessionId = GetSessionId(principal);
@@ -269,15 +264,58 @@ namespace SampleCosmosCore2App.Membership
                 }
             };
         }
-        
-        public string GenerateAPIKey(string userId)
+
+        public async Task<OneTimeLoginDetails> GetOneTimeLoginDetailsAsync(ClaimsPrincipal principal)
         {
-            var key = new byte[32];
-            using (var generator = RandomNumberGenerator.Create())
+            var userId = GetUserId(principal);
+            if (userId == null)
             {
-                generator.GetBytes(key);
+                return null;
             }
-            return Convert.ToBase64String(key);
+
+            var user = await _persistence.Users.GetUserAsync(userId);
+
+            return new OneTimeLoginDetails()
+            {
+                User = new UserDetails()
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email
+                }
+            };
+        }
+
+        public async Task<Dictionary<string, object>> DescribeUserForErrorAsync(ClaimsPrincipal principal)
+        {
+            if (IsSession(principal))
+            {
+                var sessionDetails = await GetSessionDetailsAsync(principal);
+                return new Dictionary<string, object>() {
+                    { "Login Type", "Session (Interactive)" },
+                    { "User.Id", sessionDetails.User.Id },
+                    { "User.Username", sessionDetails.User.Username },
+                    { "User.Email", sessionDetails.User.Email },
+                    { "Session.Id", sessionDetails.Id },
+                    { "Session.CreationTime", sessionDetails.CreationTime }
+                };
+            }
+            else if(IsOneTimeLogin(principal))
+            {
+                var oneTimeDetails = await GetOneTimeLoginDetailsAsync(principal);
+                return new Dictionary<string, object>() {
+                    { "Login Type", "One Time (API)" },
+                    { "User.Id", oneTimeDetails.User.Id },
+                    { "User.Username", oneTimeDetails.User.Username },
+                    { "User.Email", oneTimeDetails.User.Email }
+                };
+            }
+            else
+            {
+                return new Dictionary<string, object>() {
+                    { "User Details", "Anonymous User" }
+                };
+            }
         }
 
         public async Task<AuthenticationDetails> AddAuthenticationAsync(string userId, string scheme, string identity, string identityName)
@@ -326,5 +364,41 @@ namespace SampleCosmosCore2App.Membership
 
             return RevocationDetails.GetSuccess();
         }
+
+        public string GenerateAPIKey(string userId)
+        {
+            var key = new byte[32];
+            using (var generator = RandomNumberGenerator.Create())
+            {
+                generator.GetBytes(key);
+            }
+            return Convert.ToBase64String(key);
+        }
+
+        public string GetSessionId(ClaimsPrincipal principal)
+        {
+            return principal.FindFirstValue("sessionId");
+        }
+
+        private bool IsSession(ClaimsPrincipal principal)
+        {
+            return principal.Identities.Any(i => i.IsAuthenticated && i.AuthenticationType == Options.AuthenticationType)
+                && GetSessionId(principal) != null;
+        }
+
+        private string GetUserId(ClaimsPrincipal principal)
+        {
+            return principal.FindFirstValue("userId");
+        }
+
+        private bool IsOneTimeLogin(ClaimsPrincipal principal)
+        {
+            // TODO refactor - move OneTimeAuthScheme into Options, create Set methods to match Get for principals
+            //       probably ought to only get claims from correct Identities as well to prevent bleed over
+            return principal.Identities.Any(i => i.IsAuthenticated && i.AuthenticationType == "APIToken")
+                && GetUserId(principal) != null;
+        }
+
+
     }
 }

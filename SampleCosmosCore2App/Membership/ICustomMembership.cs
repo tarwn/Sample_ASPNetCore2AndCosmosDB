@@ -26,9 +26,11 @@ namespace SampleCosmosCore2App.Membership
 
         string GetSessionId(ClaimsPrincipal principal);
         Task<SessionDetails> GetSessionDetailsAsync(ClaimsPrincipal principal);
+        Task<Dictionary<string, object>> DescribeUserForErrorAsync(ClaimsPrincipal principal);
 
         string GenerateAPIKey(string userId);
         Task<AuthenticationDetails> AddAuthenticationAsync(string userId, string scheme, string identity, string identityName);
         Task<RevocationDetails> RevokeAuthenticationAsync(string userId, string identity);
+        
     }
 }
