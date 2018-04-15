@@ -1,0 +1,25 @@
+﻿@import "../base/variables";
+@import "../helpers/all";
+
+.navbar {
+    border-bottom: 1px solid $color-border;
+    height: 32px;
+}
+
+.navbar-left {
+    float: left;
+    line-height: 28px;
+}
+
+.navbar-right {
+    float: right;
+    line-height: 28px;
+    list-style-type: none;
+    margin: 0px;
+}
+
+.navbar-right li {
+    display: inline-block;
+    padding: 0px;
+    margin: 0px;
+}

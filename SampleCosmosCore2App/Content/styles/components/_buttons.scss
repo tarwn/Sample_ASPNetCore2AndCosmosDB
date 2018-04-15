@@ -1,0 +1,38 @@
+﻿@import "../base/variables";
+@import "../helpers/all";
+
+input[type=submit] {
+    border: 1px solid $color-button-primary;
+    padding: .5em 2em;
+    background-color: $color-button-primary;
+    border-radius: 6px;
+    color: $color-text-inverse;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+input[type=submit]:hover {
+    border: 1px solid $color-button-primary-hover;
+    background-color: $color-button-primary-hover;
+}
+
+input[type=submit]:active {
+    border: 1px solid $color-button-primary-active;
+    background-color: $color-button-primary-active;
+}
+
+.btn-white {
+    border: 1px solid $color-gray-medium;
+    padding: .5em 1em;
+    background-color: #FFF;
+    border-radius: 6px;
+    color: $color-text-regular;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.btn-white:hover {
+    background-color: $color-gray-light;
+}

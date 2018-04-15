@@ -1,6 +1,8 @@
 # Project-specific
 
 mail/*.eml
+main.css
+main.css.map
 
 
 *.swp
@@ -9,6 +11,7 @@ project.lock.json
 .DS_Store
 *.pyc
 nupkg/
+node_modules
 
 # Visual Studio Code
 .vscode

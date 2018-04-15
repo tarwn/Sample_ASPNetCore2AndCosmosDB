@@ -1,0 +1,15 @@
+﻿@import "buttons";
+@import "forms";
+
+.horizantal-line {
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    line-height: 1px;
+    margin: 10px 0 20px 0;
+}
+
+.horizantal-line span {
+    background: #FFF;
+    padding: 0 10px;
+}

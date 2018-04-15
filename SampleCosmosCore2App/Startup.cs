@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SampleCosmosCore2App.Controllers;
@@ -146,6 +147,10 @@ namespace SampleCosmosCore2App
             app.UseStatusCodePagesWithReExecute("/error/{0}");
 
             app.UseAuthentication();
+
+            app.UseStaticFiles(new StaticFileOptions() {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Content"))
+            });
 
             app.UseMvc();
         }

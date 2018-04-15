@@ -1,0 +1,25 @@
+{
+  "name": "samplecosmoscore2app",
+  "version": "1.0.0",
+  "description": "Sample ASP.Net Core 2 app w/ Cosmos DB",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tarwn/Sample_ASPNetCore2AndCosmosDB.git"
+  },
+  "author": "Eli Weinstock-Herman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tarwn/Sample_ASPNetCore2AndCosmosDB/issues"
+  },
+  "homepage": "https://github.com/tarwn/Sample_ASPNetCore2AndCosmosDB#readme",
+  "devDependencies": {
+    "autoprefixer": "^8.2.0",
+    "cssnano": "^3.10.0",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-postcss": "^7.0.1",
+    "gulp-sass": "^4.0.1",
+    "gulp-sourcemaps": "^2.6.4"
+  }
+}
