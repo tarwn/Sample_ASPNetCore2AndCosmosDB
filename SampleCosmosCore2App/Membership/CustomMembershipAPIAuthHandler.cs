@@ -44,7 +44,7 @@ namespace SampleCosmosCore2App.Membership
                 return AuthenticateResult.Fail($"Invalid authentication format, expected '{Options.Scheme} id:secret'");
             }
 
-            var principal = await _membership.GetOneTimeLoginAsync("APIKey", apiValues[0], apiValues[1], Options.Scheme);
+            var principal = await _membership.GetOneTimeLoginAsync("APIKey", apiValues[0], apiValues[1]);
             if (principal == null)
             {
                 return AuthenticateResult.Fail("Invalid authentication provided, access denied.");

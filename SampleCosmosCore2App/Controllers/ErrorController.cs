@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using SampleCosmosCore2App.Models.Error;
+using SampleCosmosCore2App.Models.Shared;
 using SampleCosmosCore2App.Notifications;
 
 namespace SampleCosmosCore2App.Controllers
@@ -37,24 +38,24 @@ namespace SampleCosmosCore2App.Controllers
                     StatusCode = 500
                 };
             }
-            else
-            {
-                return View("DescriptiveError", descriptiveError);
-            }
 
+            return View("DescriptiveError", descriptiveError);
         }
 
         [HttpGet("{statusCode}")]
         public IActionResult Error(int statusCode)
         {
+            var reexecuteFeature = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+            if (reexecuteFeature != null && IsApiCall(reexecuteFeature.OriginalPath)) {
+                return new ObjectResult(new ApiError(statusCode));
+            }
+
             if (statusCode == 404)
             {
                 return View("404");
             }
-            else
-            {
-                return View("GenericError");
-            }
+
+            return View("GenericError");
         }
 
         private bool IsApiCall(string path)

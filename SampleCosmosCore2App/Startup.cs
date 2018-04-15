@@ -85,9 +85,10 @@ namespace SampleCosmosCore2App
 
             services.AddCustomMembership<CosmosDBMembership>((options) =>
             {
-                options.AuthenticationType = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.InteractiveAuthenticationType = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultPathAfterLogin = "/";
-                //options.DefaultPathAfterLogout = "/account/login";
+
+                options.OneTimeAuthenticationType = "APIToken";
             });
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -142,10 +143,9 @@ namespace SampleCosmosCore2App
             //{
             app.UseExceptionHandler("/error");
             //}
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
 
             app.UseAuthentication();
-
-            app.UseStatusCodePagesWithReExecute("/error/{0}");
 
             app.UseMvc();
         }

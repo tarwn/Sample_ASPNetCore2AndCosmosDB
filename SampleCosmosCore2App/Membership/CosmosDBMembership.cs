@@ -163,7 +163,7 @@ namespace SampleCosmosCore2App.Membership
             return LoginResult.GetSuccess();
         }
 
-        public async Task<ClaimsPrincipal> GetOneTimeLoginAsync(string scheme, string userAuthId, string identity, string authenticationScheme)
+        public async Task<ClaimsPrincipal> GetOneTimeLoginAsync(string scheme, string userAuthId, string identity)
         {
             var authScheme = StringToScheme(scheme);
             var userAuth = await _persistence.Users.GetUserAuthenticationAsync(userAuthId);
@@ -185,9 +185,9 @@ namespace SampleCosmosCore2App.Membership
             // add validation that user is allowed to login
 
             // create a claims principal
-            var claimsIdentity = new ClaimsIdentity(authenticationScheme);
-            claimsIdentity.AddClaim(new Claim("userId", userAuth.UserId));
-            claimsIdentity.AddClaim(new Claim("userAuthId", userAuth.Id));
+            var claimsIdentity = new ClaimsIdentity(Options.OneTimeAuthenticationType);
+            AddUserIdClaim(claimsIdentity, user.Id);
+            AddUserAuthClaim(claimsIdentity, userAuth.Id);
             return new ClaimsPrincipal(claimsIdentity);
         }
 
@@ -201,9 +201,9 @@ namespace SampleCosmosCore2App.Membership
             };
             session = await _persistence.Users.CreateSessionAsync(session);
 
-            var identity = new ClaimsIdentity(Options.AuthenticationType);
-            identity.AddClaim(new Claim("userId", session.UserId));
-            identity.AddClaim(new Claim("sessionId", session.Id));
+            var identity = new ClaimsIdentity(Options.InteractiveAuthenticationType);
+            AddUserIdClaim(identity, session.UserId);
+            AddSessionIdClaim(identity, session.Id);
             await _context.HttpContext.SignInAsync(new ClaimsPrincipal(identity));
         }
 
@@ -375,6 +375,13 @@ namespace SampleCosmosCore2App.Membership
             return Convert.ToBase64String(key);
         }
 
+        #region Claims
+
+        private void AddSessionIdClaim(ClaimsIdentity identity, string sessionId)
+        {
+            identity.AddClaim(new Claim("sessionId", sessionId));
+        }
+
         public string GetSessionId(ClaimsPrincipal principal)
         {
             return principal.FindFirstValue("sessionId");
@@ -382,8 +389,13 @@ namespace SampleCosmosCore2App.Membership
 
         private bool IsSession(ClaimsPrincipal principal)
         {
-            return principal.Identities.Any(i => i.IsAuthenticated && i.AuthenticationType == Options.AuthenticationType)
+            return principal.Identities.Any(i => i.IsAuthenticated && i.AuthenticationType == Options.InteractiveAuthenticationType)
                 && GetSessionId(principal) != null;
+        }
+
+        private void AddUserIdClaim(ClaimsIdentity identity, string userId)
+        {
+            identity.AddClaim(new Claim("userId", userId));
         }
 
         private string GetUserId(ClaimsPrincipal principal)
@@ -391,14 +403,17 @@ namespace SampleCosmosCore2App.Membership
             return principal.FindFirstValue("userId");
         }
 
+        private void AddUserAuthClaim(ClaimsIdentity identity, string userAuthId)
+        {
+            identity.AddClaim(new Claim("userAuthId", userAuthId));
+        }
+
         private bool IsOneTimeLogin(ClaimsPrincipal principal)
         {
-            // TODO refactor - move OneTimeAuthScheme into Options, create Set methods to match Get for principals
-            //       probably ought to only get claims from correct Identities as well to prevent bleed over
-            return principal.Identities.Any(i => i.IsAuthenticated && i.AuthenticationType == "APIToken")
+            return principal.Identities.Any(i => i.IsAuthenticated && i.AuthenticationType == Options.OneTimeAuthenticationType)
                 && GetUserId(principal) != null;
         }
 
-
+        #endregion
     }
 }

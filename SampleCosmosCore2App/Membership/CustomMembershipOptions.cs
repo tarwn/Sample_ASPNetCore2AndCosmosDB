@@ -10,6 +10,8 @@ namespace SampleCosmosCore2App.Membership
     {
         public string DefaultPathAfterLogin { get; set; }
         public string DefaultPathAfterLogout { get; set; }
-        public string AuthenticationType { get; set; }
+
+        public string InteractiveAuthenticationType { get; set; }
+        public string OneTimeAuthenticationType { get; set; }
     }
 }
