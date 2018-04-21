@@ -3,6 +3,8 @@
 mail/*.eml
 main.css
 main.css.map
+app-bundle.js
+app-bundle.js.map
 
 
 *.swp
